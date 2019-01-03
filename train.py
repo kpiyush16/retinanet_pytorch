@@ -28,8 +28,9 @@ def main(args=None):
 	parser.add_argument('--steps_per_stats', help='Steps after statistics being showed', type=int, default=100)
 	parser.add_argument('--savepath', help='Save to dir', type=str, default="ckpts")
 	parser.add_argument('--depth', help='Resnet depth, must be one of 18, 34, 50, 101, 152', type=int, default=50)
+	parser.add_argument('--batch_size', help='Batch Size for Dataloader in train/val dataset', type=int, default=16)
 	parser.add_argument('--epochs', help='Number of epochs(default=100)', type=int, default=100)
-	parser.add_argument('--resume', default=False)
+	parser.add_argument('--resume', help='Checkpoint from which you have to start', default=False)
 
 	parser = parser.parse_args(args)
 	if not os.path.exists(parser.savepath):
@@ -44,7 +45,7 @@ def main(args=None):
 
 	print("Preparing the training Dataset")
 	dataset_train = CSVDataset(train_file=parser.train, class_list=parser.classes, transform=transforms.Compose([Normalizer(), Augmenter(), Resizer()]))
-	sampler = AspectRatioBasedSampler(dataset_train, batch_size=16, drop_last=False)
+	sampler = AspectRatioBasedSampler(dataset_train, batch_size=parser.batch_size, drop_last=False)
 	print("Preparing the training Dataloader")
 	dataloader_train = DataLoader(dataset_train, num_workers=2, collate_fn=collater, batch_sampler=sampler)
 
@@ -57,7 +58,7 @@ def main(args=None):
 
 	
 	if dataset_val is not None:
-		sampler_val = AspectRatioBasedSampler(dataset_val, batch_size=16, drop_last=False)
+		sampler_val = AspectRatioBasedSampler(dataset_val, batch_size=parser.batch_size, drop_last=False)
 		print("Preparing the validation Dataloader")
 		dataloader_val = DataLoader(dataset_val, num_workers=2, collate_fn=collater, batch_sampler=sampler_val)
 
@@ -111,6 +112,7 @@ def main(args=None):
 	retinanet.module.freeze_bn()
 	loss_hist = collections.deque(maxlen=500)
 	
+	import pdb; pdb.set_trace()
 	# sys.exit(0)
 	for epoch_num in range(start_epoch+1,parser.epochs):
 
